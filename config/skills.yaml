@@ -1,0 +1,71 @@
+# Agentic Developer - Skill Engine Configuration
+# Define custom developer workflow patterns, variables, and automated CLI steps.
+
+version: "1.0"
+
+# Global conventions applied across skills
+conventions:
+  branch_pattern: "{type}/{jira_key}-{slugified_summary}"
+  commit_pattern: "[{jira_key}] {type}: {summary}"
+  pr_title_pattern: "[{jira_key}] {summary}"
+
+# Defined Skills / Workflows
+skills:
+  start-feature:
+    name: "Start Feature Workflow"
+    description: "Fetch JIRA ticket details, transition status to 'In Progress', and create git branch."
+    jira_transition: "In Progress"
+    steps:
+      - action: "jira.fetch"
+        params:
+          issue_key: "{jira_key}"
+      - action: "jira.transition"
+        params:
+          issue_key: "{jira_key}"
+          status: "In Progress"
+      - action: "git.checkout_branch"
+        params:
+          branch_name: "{branch_name}"
+          create_if_missing: true
+
+  create-pr:
+    name: "Create Pull Request / Merge Request"
+    description: "Push current branch and create PR on GitHub (gh) or GitLab (glab) linked to JIRA issue."
+    steps:
+      - action: "git.push"
+        params:
+          set_upstream: true
+          safety_confirm: false
+      - action: "git.create_pr"
+        params:
+          title: "{pr_title}"
+          body: "Closes [{jira_key}]({jira_url})\n\n### Summary\n{jira_description}"
+          draft: false
+
+  finish-issue:
+    name: "Finish Issue Workflow"
+    description: "Create PR, request review, and update JIRA status to 'In Review'."
+    jira_transition: "In Review"
+    steps:
+      - action: "git.push"
+        params:
+          set_upstream: true
+      - action: "git.create_pr"
+        params:
+          title: "{pr_title}"
+          body: "Resolves [{jira_key}]({jira_url})\n\n### Description\n{jira_description}"
+      - action: "jira.transition"
+        params:
+          issue_key: "{jira_key}"
+          status: "In Review"
+
+  force-cleanup:
+    name: "Force Cleanup Branch"
+    description: "Destructive skill to delete local and remote branches for a ticket."
+    safety_confirm_required: true
+    steps:
+      - action: "git.delete_branch"
+        params:
+          branch_name: "{branch_name}"
+          remote: true
+          safety_confirm: true

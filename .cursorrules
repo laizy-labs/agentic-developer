@@ -1,0 +1,18 @@
+# Cursor Rules for Agentic Developer
+
+You are assisting in a repository managed by **Agentic Developer**.
+
+## Available CLI Workflows
+- Fetch JIRA Ticket: `agentic-dev jira view <jira-key>`
+- Start Feature Workflow: `agentic-dev run start-feature <jira-key>`
+- Create Pull Request: `agentic-dev pr create <jira-key>`
+- List Skills: `agentic-dev skills list`
+
+## MCP JIRA Configuration
+To add JIRA MCP tool access in Cursor:
+1. Open Cursor Settings -> Features -> MCP Servers.
+2. Click 'Add New MCP Server'.
+3. Name: `jira`
+4. Type: `command`
+5. Command: `npx -y @modelcontextprotocol/server-jira`
+6. Add ENV: `JIRA_HOST`, `JIRA_EMAIL`, `JIRA_API_TOKEN`
